@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as path;
 import 'package:fl_chart/fl_chart.dart';
@@ -200,12 +201,77 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Health Tracker',
       theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
-      home: UserListPage(),
+      home: AuthPage(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
+// ==================== AUTH PAGE =========================
+class AuthPage extends StatefulWidget {
+  AuthPage({super.key});
 
+  @override
+  State<AuthPage> createState() => _AuthPageState();
+}
+
+class _AuthPageState extends State<AuthPage> {
+  @override
+  void initState() {
+    super.initState();
+    authInit();
+  }
+  void authInit()async{
+    bool check = await AuthService().authenticateLocally();
+    if(check){
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context)=>UserListPage()));
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Auth Page')),
+      body: Center(
+        child: IconButton(
+          onPressed: () async{
+            authInit();
+          },
+          icon: Icon(Icons.fingerprint, size: 70),
+        ),
+      ),
+    );
+  }
+}
+// ==================== AUTH SERVICES =========================
+class AuthService {
+  final LocalAuthentication localAuth = LocalAuthentication();
+
+  Future<bool> authenticateLocally() async{
+    bool isAuthenticate = false;
+
+    try {
+      isAuthenticate = await localAuth.authenticate(
+        localizedReason: "We need to authenticate for using this app.",
+
+
+      );
+    } on LocalAuthException catch (e) {
+      if (e.code == LocalAuthExceptionCode.noBiometricHardware) {
+        // Add handling of no hardware here.
+      } else if (e.code == LocalAuthExceptionCode.temporaryLockout ||
+          e.code == LocalAuthExceptionCode.biometricLockout) {
+        // ...
+      } else {
+        // ...
+      }
+    }catch (e) {
+      isAuthenticate = false;
+      print('Error: $e');
+    }
+
+    return isAuthenticate;
+  }
+}
 // ==================== USER LIST PAGE (MAIN PAGE) ====================
 class UserListPage extends StatefulWidget {
   @override
