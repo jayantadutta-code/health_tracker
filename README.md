@@ -7,15 +7,15 @@
     
     
     📸 Screenshots
-    <div align="center"> 
-    <img src="assets/images/ddb1.jpeg" width="110" alt="Dynamic Dashboard"> 
-    <img src="assets/images/ddb2.jpeg" width="110" alt="Dynamic Dashboard"> 
-    <img src="assets/images/ddb3.jpeg" width="110" alt="Dynamic Dashboard"> 
-    <img src="assets/images/ddb4.jpeg" width="110" alt="Dynamic Dashboard"> 
-    <img src="assets/images/ddb5.jpeg" width="110" alt="Dynamic Dashboard"> 
-    <img src="assets/images/ddb6.jpeg" width="110" alt="Dynamic Dashboard"> 
-    <img src="assets/images/ddb7.jpeg" width="110" alt="Dynamic Dashboard"> 
-    </div>📱 Features
+<div align="center"> 
+<img src="assets/images/ddb1.jpeg" width="110" alt="Dynamic Dashboard"> 
+<img src="assets/images/ddb2.jpeg" width="110" alt="Dynamic Dashboard"> 
+<img src="assets/images/ddb3.jpeg" width="110" alt="Dynamic Dashboard"> 
+<img src="assets/images/ddb4.jpeg" width="110" alt="Dynamic Dashboard"> 
+<img src="assets/images/ddb5.jpeg" width="110" alt="Dynamic Dashboard"> 
+<img src="assets/images/ddb6.jpeg" width="110" alt="Dynamic Dashboard"> 
+<img src="assets/images/ddb7.jpeg" width="110" alt="Dynamic Dashboard"> 
+</div>📱 Features
     
     👥 User Management
 
