@@ -1,8 +1,15 @@
-🩺 Health Tracker App
-A comprehensive Flutter application for tracking diabetes (glucose) and blood pressure readings with local database storage, data visualization, and PDF report generation.
 
+    🩺 Health Tracker App
+        A comprehensive Flutter application for tracking diabetes (glucose) and blood 
+        pressure readings with local database storage, data visualization, and PDF report 
+        generation.
+
+    
+    
 📱 Features
+    
     👥 User Management
+
         Register new users with Name, Date of Birth, Sex, Phone, Address
 
         Edit existing user details
