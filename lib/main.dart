@@ -9,6 +9,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:typed_data';
+import 'package:local_auth_platform_interface/local_auth_platform_interface.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -220,23 +221,73 @@ class _AuthPageState extends State<AuthPage> {
     super.initState();
     authInit();
   }
-  void authInit()async{
+
+  void authInit() async {
     bool check = await AuthService().authenticateLocally();
-    if(check){
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context)=>UserListPage()));
+    if (check) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => UserListPage()),
+      );
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Auth Page')),
+      appBar: AppBar(
+        title: Text('Health Tracker'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
       body: Center(
-        child: IconButton(
-          onPressed: () async{
-            authInit();
-          },
-          icon: Icon(Icons.fingerprint, size: 70),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.fingerprint,
+              size: 100,
+              color: Colors.blue,
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Biometric Authentication Required',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Tap the fingerprint icon to authenticate',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () async {
+                bool check = await AuthService().authenticateLocally();
+                if (check) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => UserListPage()),
+                  );
+                }
+              },
+              icon: Icon(Icons.fingerprint),
+              label: Text('Authenticate'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -246,27 +297,38 @@ class _AuthPageState extends State<AuthPage> {
 class AuthService {
   final LocalAuthentication localAuth = LocalAuthentication();
 
-  Future<bool> authenticateLocally() async{
+  Future<bool> authenticateLocally() async {
     bool isAuthenticate = false;
 
     try {
-      isAuthenticate = await localAuth.authenticate(
-        localizedReason: "We need to authenticate for using this app.",
+      // Check if biometric is available
+      final bool canAuthenticate = await localAuth.canCheckBiometrics;
 
-
-      );
-    } on LocalAuthException catch (e) {
-      if (e.code == LocalAuthExceptionCode.noBiometricHardware) {
-        // Add handling of no hardware here.
-      } else if (e.code == LocalAuthExceptionCode.temporaryLockout ||
-          e.code == LocalAuthExceptionCode.biometricLockout) {
-        // ...
-      } else {
-        // ...
+      if (!canAuthenticate) {
+        print('No biometric hardware');
+        return false;
       }
-    }catch (e) {
+
+      // Check for enrolled biometrics
+      final List<BiometricType> availableBiometrics =
+      await localAuth.getAvailableBiometrics();
+
+      if (availableBiometrics.isEmpty) {
+        print('No biometrics enrolled on device');
+        return false;
+      }
+
+      isAuthenticate = await localAuth.authenticate(
+        localizedReason: "Authenticate to access Health Tracker",
+        options: AuthenticationOptions(  // ✅ Use options parameter
+          biometricOnly: false,          // Allow both biometrics and device credentials
+          useErrorDialogs: true,         // Show system error dialogs
+          stickyAuth: true,             // Keep authentication active
+        ),
+      );
+    } catch (e) {
+      print('Authentication error: $e');
       isAuthenticate = false;
-      print('Error: $e');
     }
 
     return isAuthenticate;
