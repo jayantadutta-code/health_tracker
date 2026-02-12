@@ -9,7 +9,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:typed_data';
-import 'package:local_auth_platform_interface/local_auth_platform_interface.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -207,6 +206,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 // ==================== AUTH PAGE =========================
 class AuthPage extends StatefulWidget {
   AuthPage({super.key});
@@ -293,6 +293,7 @@ class _AuthPageState extends State<AuthPage> {
     );
   }
 }
+
 // ==================== AUTH SERVICES =========================
 class AuthService {
   final LocalAuthentication localAuth = LocalAuthentication();
@@ -320,10 +321,10 @@ class AuthService {
 
       isAuthenticate = await localAuth.authenticate(
         localizedReason: "Authenticate to access Health Tracker",
-        options: AuthenticationOptions(  // ✅ Use options parameter
-          biometricOnly: false,          // Allow both biometrics and device credentials
-          useErrorDialogs: true,         // Show system error dialogs
-          stickyAuth: true,             // Keep authentication active
+        options: AuthenticationOptions(
+          biometricOnly: true,
+          useErrorDialogs: true,
+          stickyAuth: true,
         ),
       );
     } catch (e) {
@@ -334,6 +335,7 @@ class AuthService {
     return isAuthenticate;
   }
 }
+
 // ==================== USER LIST PAGE (MAIN PAGE) ====================
 class UserListPage extends StatefulWidget {
   @override
@@ -406,7 +408,8 @@ class _UserListPageState extends State<UserListPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Delete User'),
-        content: Text('Are you sure you want to delete ${user.name}?\n\nAll their health records will also be deleted permanently.'),
+        content: Text(
+            'Are you sure you want to delete ${user.name}?\n\nAll their health records will also be deleted permanently.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -523,7 +526,8 @@ class _UserListPageState extends State<UserListPage> {
                       children: [
                         Icon(Icons.delete, size: 18, color: Colors.red),
                         SizedBox(width: 8),
-                        Text('Delete', style: TextStyle(color: Colors.red)),
+                        Text('Delete',
+                            style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
@@ -572,8 +576,10 @@ class EditUserForm extends StatefulWidget {
 class _EditUserFormState extends State<EditUserForm> {
   late final _formKey = GlobalKey<FormState>();
   late final _nameController = TextEditingController(text: widget.user.name);
-  late final _phoneController = TextEditingController(text: widget.user.phone);
-  late final _addressController = TextEditingController(text: widget.user.address);
+  late final _phoneController =
+  TextEditingController(text: widget.user.phone);
+  late final _addressController =
+  TextEditingController(text: widget.user.address);
 
   late DateTime _selectedDate = widget.user.dob;
   late String _selectedSex = widget.user.sex;
@@ -1184,6 +1190,58 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
     });
   }
 
+  List<GlucoseReading> get _graphGlucose {
+    if (_startDate == null || _endDate == null) {
+      return _glucoseReadings.reversed.toList();
+    }
+    return _glucoseReadings
+        .where(
+          (r) =>
+      !r.readingTime.isBefore(_startDate!) &&
+          r.readingTime.isBefore(_endDate!.add(Duration(days: 1))),
+    )
+        .toList()
+        .reversed
+        .toList();
+  }
+
+  List<GlucoseReading> get _filteredGlucose {
+    if (_startDate == null || _endDate == null) return _glucoseReadings;
+    return _glucoseReadings
+        .where(
+          (r) =>
+      !r.readingTime.isBefore(_startDate!) &&
+          r.readingTime.isBefore(_endDate!.add(Duration(days: 1))),
+    )
+        .toList();
+  }
+
+  List<BPReading> get _graphBP {
+    if (_startDate == null || _endDate == null) {
+      return _bpReadings.reversed.toList();
+    }
+    return _bpReadings
+        .where(
+          (r) =>
+      !r.readingTime.isBefore(_startDate!) &&
+          r.readingTime.isBefore(_endDate!.add(Duration(days: 1))),
+    )
+        .toList()
+        .reversed
+        .toList();
+  }
+
+  List<BPReading> get _filteredBP {
+    if (_startDate == null || _endDate == null) return _bpReadings;
+    return _bpReadings
+        .where(
+          (r) =>
+      !r.readingTime.isBefore(_startDate!) &&
+          r.readingTime.isBefore(_endDate!.add(Duration(days: 1))),
+    )
+        .toList();
+  }
+
   void _addGlucoseReading() {
     DateTime selectedDate = DateTime.now();
     TextEditingController valueController = TextEditingController();
@@ -1370,7 +1428,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
 
   void _editGlucoseReading(GlucoseReading reading) {
     DateTime selectedDate = reading.readingTime;
-    TextEditingController valueController = TextEditingController(text: reading.value.toString());
+    TextEditingController valueController =
+    TextEditingController(text: reading.value.toString());
 
     showDialog(
       context: context,
@@ -1463,8 +1522,10 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
 
   void _editBPReading(BPReading reading) {
     DateTime selectedDate = reading.readingTime;
-    TextEditingController systolicController = TextEditingController(text: reading.systolic.toString());
-    TextEditingController diastolicController = TextEditingController(text: reading.diastolic.toString());
+    TextEditingController systolicController =
+    TextEditingController(text: reading.systolic.toString());
+    TextEditingController diastolicController =
+    TextEditingController(text: reading.diastolic.toString());
 
     showDialog(
       context: context,
@@ -1646,58 +1707,6 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
     }
   }
 
-  List<GlucoseReading> get _filteredGlucose {
-    if (_startDate == null || _endDate == null) return _glucoseReadings;
-    return _glucoseReadings
-        .where(
-          (r) =>
-      r.readingTime.isAfter(_startDate!) &&
-          r.readingTime.isBefore(_endDate!.add(Duration(days: 1))),
-    )
-        .toList();
-  }
-
-  List<GlucoseReading> get _graphGlucose {
-    if (_startDate == null || _endDate == null) {
-      return _glucoseReadings.reversed.toList();
-    }
-    return _glucoseReadings
-        .where(
-          (r) =>
-      r.readingTime.isAfter(_startDate!) &&
-          r.readingTime.isBefore(_endDate!.add(Duration(days: 1))),
-    )
-        .toList()
-        .reversed
-        .toList();
-  }
-
-  List<BPReading> get _filteredBP {
-    if (_startDate == null || _endDate == null) return _bpReadings;
-    return _bpReadings
-        .where(
-          (r) =>
-      r.readingTime.isAfter(_startDate!) &&
-          r.readingTime.isBefore(_endDate!.add(Duration(days: 1))),
-    )
-        .toList();
-  }
-
-  List<BPReading> get _graphBP {
-    if (_startDate == null || _endDate == null) {
-      return _bpReadings.reversed.toList();
-    }
-    return _bpReadings
-        .where(
-          (r) =>
-      r.readingTime.isAfter(_startDate!) &&
-          r.readingTime.isBefore(_endDate!.add(Duration(days: 1))),
-    )
-        .toList()
-        .reversed
-        .toList();
-  }
-
   Future<void> _sharePDF() async {
     final pdf = pw.Document();
 
@@ -1718,8 +1727,6 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
               ),
             ),
             pw.SizedBox(height: 20),
-
-            // User Details
             pw.Container(
               padding: pw.EdgeInsets.all(16),
               decoration: pw.BoxDecoration(
@@ -1738,32 +1745,39 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                   ),
                   pw.SizedBox(height: 12),
                   pw.Row(children: [
-                    pw.Text('Name: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Name: ',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.Text(widget.user.name),
                   ]),
                   pw.Row(children: [
-                    pw.Text('Date of Birth: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Date of Birth: ',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.Text(DateFormat('dd/MM/yyyy').format(widget.user.dob)),
                   ]),
                   pw.Row(children: [
-                    pw.Text('Age: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Age: ',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.Text('${widget.user.age} years'),
                   ]),
                   pw.Row(children: [
-                    pw.Text('Sex: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Sex: ',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.Text(widget.user.sex),
                   ]),
                   pw.Row(children: [
-                    pw.Text('Phone: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Phone: ',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.Text(widget.user.phone),
                   ]),
                   pw.Row(children: [
-                    pw.Text('Address: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Address: ',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.Text(widget.user.address),
                   ]),
                   pw.SizedBox(height: 8),
                   pw.Row(children: [
-                    pw.Text('Report Period: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Report Period: ',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.Text(
                       _startDate != null && _endDate != null
                           ? '${DateFormat('dd/MM/yy').format(_startDate!)} - ${DateFormat('dd/MM/yy').format(_endDate!)}'
@@ -1774,12 +1788,11 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
               ),
             ),
             pw.SizedBox(height: 30),
-
-            // Glucose Chart - Text Summary
             if (_graphGlucose.isNotEmpty) ...[
               pw.Text(
                 'Glucose Summary',
-                style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(
+                    fontSize: 16, fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 12),
               pw.Container(
@@ -1791,30 +1804,35 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('📊 Glucose Readings Overview', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('📊 Glucose Readings Overview',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.SizedBox(height: 8),
-                    pw.Text('Period: ${DateFormat('dd/MM/yy').format(_graphGlucose.first.readingTime)} - ${DateFormat('dd/MM/yy').format(_graphGlucose.last.readingTime)}'),
+                    pw.Text(
+                        'Period: ${DateFormat('dd/MM/yy').format(_graphGlucose.first.readingTime)} - ${DateFormat('dd/MM/yy').format(_graphGlucose.last.readingTime)}'),
                     pw.Text('Total Readings: ${_graphGlucose.length}'),
                     pw.SizedBox(height: 8),
-                    pw.Text('Lowest: ${_graphGlucose.map((e) => e.value).reduce((a, b) => a < b ? a : b).toStringAsFixed(1)} mg/dL'),
-                    pw.Text('Highest: ${_graphGlucose.map((e) => e.value).reduce((a, b) => a > b ? a : b).toStringAsFixed(1)} mg/dL'),
-                    pw.Text('Average: ${(_graphGlucose.map((e) => e.value).reduce((a, b) => a + b) / _graphGlucose.length).toStringAsFixed(1)} mg/dL'),
+                    pw.Text(
+                        'Lowest: ${_graphGlucose.map((e) => e.value).reduce((a, b) => a < b ? a : b).toStringAsFixed(1)} mg/dL'),
+                    pw.Text(
+                        'Highest: ${_graphGlucose.map((e) => e.value).reduce((a, b) => a > b ? a : b).toStringAsFixed(1)} mg/dL'),
+                    pw.Text(
+                        'Average: ${(_graphGlucose.map((e) => e.value).reduce((a, b) => a + b) / _graphGlucose.length).toStringAsFixed(1)} mg/dL'),
                     pw.SizedBox(height: 8),
                     pw.Divider(),
                     pw.SizedBox(height: 4),
-                    pw.Text('📈 Trend:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('📈 Trend:',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.Text(_getTrendDescription()),
                   ],
                 ),
               ),
               pw.SizedBox(height: 20),
             ],
-
-            // BP Summary
             if (_graphBP.isNotEmpty) ...[
               pw.Text(
                 'Blood Pressure Summary',
-                style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(
+                    fontSize: 16, fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 12),
               pw.Container(
@@ -1826,22 +1844,24 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('🩺 BP Readings Overview', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('🩺 BP Readings Overview',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     pw.SizedBox(height: 8),
                     pw.Text('Total Readings: ${_graphBP.length}'),
-                    pw.Text('Avg Systolic: ${(_graphBP.map((e) => e.systolic).reduce((a, b) => a + b) ~/ _graphBP.length)} mmHg'),
-                    pw.Text('Avg Diastolic: ${(_graphBP.map((e) => e.diastolic).reduce((a, b) => a + b) ~/ _graphBP.length)} mmHg'),
+                    pw.Text(
+                        'Avg Systolic: ${(_graphBP.map((e) => e.systolic).reduce((a, b) => a + b) ~/ _graphBP.length)} mmHg'),
+                    pw.Text(
+                        'Avg Diastolic: ${(_graphBP.map((e) => e.diastolic).reduce((a, b) => a + b) ~/ _graphBP.length)} mmHg'),
                   ],
                 ),
               ),
               pw.SizedBox(height: 20),
             ],
-
-            // Glucose Readings Table
             if (_filteredGlucose.isNotEmpty) ...[
               pw.Text(
                 'Glucose Readings',
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(
+                    fontSize: 18, fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 12),
               pw.Table(
@@ -1850,9 +1870,21 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                   pw.TableRow(
                     decoration: pw.BoxDecoration(color: PdfColors.grey200),
                     children: [
-                      pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('Date', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                      pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('Value', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                      pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('Status', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+                      pw.Container(
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text('Date',
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold))),
+                      pw.Container(
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text('Value',
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold))),
+                      pw.Container(
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text('Status',
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold))),
                     ],
                   ),
                   ..._filteredGlucose.reversed.take(20).map((r) {
@@ -1876,9 +1908,21 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                         : PdfColors.purple700;
                     return pw.TableRow(
                       children: [
-                        pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text(DateFormat('dd/MM/yy').format(r.readingTime))),
-                        pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('${r.value.toStringAsFixed(1)}')),
-                        pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text(status, style: pw.TextStyle(color: color, fontWeight: pw.FontWeight.bold))),
+                        pw.Container(
+                            padding: pw.EdgeInsets.all(8),
+                            child: pw.Text(DateFormat('dd/MM/yy')
+                                .format(r.readingTime))),
+                        pw.Container(
+                            padding: pw.EdgeInsets.all(8),
+                            child: pw.Text('${r.value.toStringAsFixed(1)}')),
+                        pw.Container(
+                            padding: pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              status,
+                              style: pw.TextStyle(
+                                  color: color,
+                                  fontWeight: pw.FontWeight.bold),
+                            )),
                       ],
                     );
                   }).toList(),
@@ -1886,12 +1930,11 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
               ),
               pw.SizedBox(height: 20),
             ],
-
-            // BP Readings Table
             if (_filteredBP.isNotEmpty) ...[
               pw.Text(
                 'Blood Pressure Readings',
-                style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                style: pw.TextStyle(
+                    fontSize: 18, fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 12),
               pw.Table(
@@ -1900,31 +1943,58 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                   pw.TableRow(
                     decoration: pw.BoxDecoration(color: PdfColors.grey200),
                     children: [
-                      pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('Date', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                      pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('Systolic', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                      pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('Diastolic', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                      pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('Status', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
+                      pw.Container(
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text('Date',
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold))),
+                      pw.Container(
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text('Systolic',
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold))),
+                      pw.Container(
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text('Diastolic',
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold))),
+                      pw.Container(
+                          padding: pw.EdgeInsets.all(8),
+                          child: pw.Text('Status',
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold))),
                     ],
                   ),
                   ..._filteredBP.reversed.take(20).map((r) {
                     String status = r.systolic < 120 && r.diastolic < 80
                         ? 'Normal'
-                        : (r.systolic < 130 && r.diastolic < 80 ? 'Elevated' : 'High');
+                        : (r.systolic < 130 && r.diastolic < 80
+                        ? 'Elevated'
+                        : 'High');
                     return pw.TableRow(
                       children: [
-                        pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text(DateFormat('dd/MM/yy').format(r.readingTime))),
-                        pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('${r.systolic}')),
-                        pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text('${r.diastolic}')),
-                        pw.Container(padding: pw.EdgeInsets.all(8), child: pw.Text(status)),
+                        pw.Container(
+                            padding: pw.EdgeInsets.all(8),
+                            child: pw.Text(DateFormat('dd/MM/yy')
+                                .format(r.readingTime))),
+                        pw.Container(
+                            padding: pw.EdgeInsets.all(8),
+                            child: pw.Text('${r.systolic}')),
+                        pw.Container(
+                            padding: pw.EdgeInsets.all(8),
+                            child: pw.Text('${r.diastolic}')),
+                        pw.Container(
+                            padding: pw.EdgeInsets.all(8),
+                            child: pw.Text(status)),
                       ],
                     );
                   }).toList(),
                 ],
               ),
             ],
-
             pw.SizedBox(height: 20),
-            pw.Text('Generated on: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}'),
+            pw.Text(
+                'Generated on: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}'),
           ];
         },
       ),
@@ -1936,7 +2006,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
       mimeType: 'application/pdf',
       name: 'Health_Report_${widget.user.name}.pdf',
     );
-    await Share.shareXFiles([file], text: 'Health Report - ${widget.user.name}');
+    await Share.shareXFiles([file],
+        text: 'Health Report - ${widget.user.name}');
   }
 
   String _getTrendDescription() {
@@ -1946,8 +2017,12 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
     double last = _graphGlucose.last.value;
     double change = ((last - first) / first * 100);
 
-    if (change < -5) return '📉 Decreasing (${change.abs().toStringAsFixed(1)}% lower) - Improving';
-    if (change > 5) return '📈 Increasing (${change.toStringAsFixed(1)}% higher) - Needs attention';
+    if (change < -5) {
+      return '📉 Decreasing (${change.abs().toStringAsFixed(1)}% lower) - Improving';
+    }
+    if (change > 5) {
+      return '📈 Increasing (${change.toStringAsFixed(1)}% higher) - Needs attention';
+    }
     return '➡️ Stable (${change.toStringAsFixed(1)}% change)';
   }
 
@@ -1969,7 +2044,9 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
           actions: [
             IconButton(
               icon: Icon(Icons.picture_as_pdf),
-              onPressed: _filteredGlucose.isEmpty && _filteredBP.isEmpty ? null : _sharePDF,
+              onPressed: _filteredGlucose.isEmpty && _filteredBP.isEmpty
+                  ? null
+                  : _sharePDF,
               tooltip: 'Share PDF',
             ),
           ],
@@ -1986,7 +2063,9 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ListTile(
-                    leading: CircleAvatar(child: Icon(Icons.bloodtype), backgroundColor: Colors.green),
+                    leading: CircleAvatar(
+                        child: Icon(Icons.bloodtype),
+                        backgroundColor: Colors.green),
                     title: Text('Add Glucose Reading'),
                     onTap: () {
                       Navigator.pop(context);
@@ -1994,7 +2073,9 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                     },
                   ),
                   ListTile(
-                    leading: CircleAvatar(child: Icon(Icons.favorite), backgroundColor: Colors.red),
+                    leading: CircleAvatar(
+                        child: Icon(Icons.favorite),
+                        backgroundColor: Colors.red),
                     title: Text('Add BP Reading'),
                     onTap: () {
                       Navigator.pop(context);
@@ -2023,7 +2104,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                 child: InkWell(
                   onTap: _selectDateRange,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(8),
@@ -2071,12 +2153,15 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                           interval: _graphGlucose.length > 8 ? 2 : 1,
                           getTitlesWidget: (value, meta) {
                             int index = value.toInt();
-                            if (index >= 0 && index < _graphGlucose.length &&
-                                (_graphGlucose.length <= 8 || index % 2 == 0)) {
+                            if (index >= 0 &&
+                                index < _graphGlucose.length &&
+                                (_graphGlucose.length <= 8 ||
+                                    index % 2 == 0)) {
                               return Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
-                                  DateFormat('dd/MM').format(_graphGlucose[index].readingTime),
+                                  DateFormat('dd/MM').format(
+                                      _graphGlucose[index].readingTime),
                                   style: TextStyle(fontSize: 9),
                                 ),
                               );
@@ -2096,33 +2181,54 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                     borderData: FlBorderData(show: true),
                     lineBarsData: [
                       LineChartBarData(
-                        spots: _graphGlucose.asMap().entries.map((e) => FlSpot(e.key.toDouble(), 70)).toList(),
+                        spots: _graphGlucose
+                            .asMap()
+                            .entries
+                            .map((e) => FlSpot(e.key.toDouble(), 70))
+                            .toList(),
                         color: Colors.green.withOpacity(0.3),
                         barWidth: 1,
                         dashArray: [5, 5],
                         dotData: FlDotData(show: false),
                       ),
                       LineChartBarData(
-                        spots: _graphGlucose.asMap().entries.map((e) => FlSpot(e.key.toDouble(), 139)).toList(),
+                        spots: _graphGlucose
+                            .asMap()
+                            .entries
+                            .map((e) => FlSpot(e.key.toDouble(), 139))
+                            .toList(),
                         color: Colors.red.withOpacity(0.3),
                         barWidth: 1,
                         dashArray: [5, 5],
                         dotData: FlDotData(show: false),
                       ),
                       LineChartBarData(
-                        spots: _graphGlucose.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.value)).toList(),
+                        spots: _graphGlucose
+                            .asMap()
+                            .entries
+                            .map((e) =>
+                            FlSpot(e.key.toDouble(), e.value.value))
+                            .toList(),
                         isCurved: true,
                         color: Colors.green,
                         barWidth: 2,
                         dotData: FlDotData(show: true),
-                        belowBarData: BarAreaData(show: true, color: Colors.green.withOpacity(0.1)),
+                        belowBarData: BarAreaData(
+                            show: true,
+                            color: Colors.green.withOpacity(0.1)),
                       ),
                     ],
                     minX: 0,
-                    maxX: _graphGlucose.length > 1 ? (_graphGlucose.length - 1).toDouble() : 1,
+                    maxX: _graphGlucose.length > 1
+                        ? (_graphGlucose.length - 1).toDouble()
+                        : 1,
                     minY: 0,
-                    maxY: _graphGlucose.isEmpty ? 200 :
-                    (_graphGlucose.map((e) => e.value).reduce((a, b) => a > b ? a : b) + 50),
+                    maxY: _graphGlucose.isEmpty
+                        ? 200
+                        : (_graphGlucose
+                        .map((e) => e.value)
+                        .reduce((a, b) => a > b ? a : b) +
+                        50),
                   ),
                 ),
               ),
@@ -2136,7 +2242,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                 children: [
                   Icon(Icons.bloodtype, size: 60, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('No glucose readings', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                  Text('No glucose readings',
+                      style: TextStyle(fontSize: 16, color: Colors.grey)),
                 ],
               ),
             ),
@@ -2173,11 +2280,14 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                       backgroundColor: color.withOpacity(0.2),
                       child: Text(
                         '${reading.value.toInt()}',
-                        style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: color, fontWeight: FontWeight.bold),
                       ),
                     ),
-                    title: Text('${reading.value} mg/dL', style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(DateFormat('dd/MM/yyyy').format(reading.readingTime)),
+                    title: Text('${reading.value} mg/dL',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(
+                        DateFormat('dd/MM/yyyy').format(reading.readingTime)),
                     trailing: PopupMenuButton<String>(
                       icon: Icon(Icons.more_vert),
                       itemBuilder: (context) => [
@@ -2197,7 +2307,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                             children: [
                               Icon(Icons.delete, size: 18, color: Colors.red),
                               SizedBox(width: 8),
-                              Text('Delete', style: TextStyle(color: Colors.red)),
+                              Text('Delete',
+                                  style: TextStyle(color: Colors.red)),
                             ],
                           ),
                         ),
@@ -2230,7 +2341,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                 child: InkWell(
                   onTap: _selectDateRange,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(8),
@@ -2278,12 +2390,14 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                           interval: _graphBP.length > 8 ? 2 : 1,
                           getTitlesWidget: (value, meta) {
                             int index = value.toInt();
-                            if (index >= 0 && index < _graphBP.length &&
+                            if (index >= 0 &&
+                                index < _graphBP.length &&
                                 (_graphBP.length <= 8 || index % 2 == 0)) {
                               return Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
-                                  DateFormat('dd/MM').format(_graphBP[index].readingTime),
+                                  DateFormat('dd/MM')
+                                      .format(_graphBP[index].readingTime),
                                   style: TextStyle(fontSize: 9),
                                 ),
                               );
@@ -2303,28 +2417,46 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                     borderData: FlBorderData(show: true),
                     lineBarsData: [
                       LineChartBarData(
-                        spots: _graphBP.asMap().entries.map((e) => FlSpot(e.key.toDouble(), 120)).toList(),
+                        spots: _graphBP
+                            .asMap()
+                            .entries
+                            .map((e) => FlSpot(e.key.toDouble(), 120))
+                            .toList(),
                         color: Colors.green.withOpacity(0.3),
                         barWidth: 1,
                         dashArray: [5, 5],
                         dotData: FlDotData(show: false),
                       ),
                       LineChartBarData(
-                        spots: _graphBP.asMap().entries.map((e) => FlSpot(e.key.toDouble(), 80)).toList(),
+                        spots: _graphBP
+                            .asMap()
+                            .entries
+                            .map((e) => FlSpot(e.key.toDouble(), 80))
+                            .toList(),
                         color: Colors.green.withOpacity(0.3),
                         barWidth: 1,
                         dashArray: [5, 5],
                         dotData: FlDotData(show: false),
                       ),
                       LineChartBarData(
-                        spots: _graphBP.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.systolic.toDouble())).toList(),
+                        spots: _graphBP
+                            .asMap()
+                            .entries
+                            .map((e) => FlSpot(e.key.toDouble(),
+                            e.value.systolic.toDouble()))
+                            .toList(),
                         isCurved: true,
                         color: Colors.red,
                         barWidth: 2,
                         dotData: FlDotData(show: true),
                       ),
                       LineChartBarData(
-                        spots: _graphBP.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.diastolic.toDouble())).toList(),
+                        spots: _graphBP
+                            .asMap()
+                            .entries
+                            .map((e) => FlSpot(e.key.toDouble(),
+                            e.value.diastolic.toDouble()))
+                            .toList(),
                         isCurved: true,
                         color: Colors.blue,
                         barWidth: 2,
@@ -2344,7 +2476,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                 children: [
                   Icon(Icons.favorite, size: 60, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('No BP readings', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                  Text('No BP readings',
+                      style: TextStyle(fontSize: 16, color: Colors.grey)),
                 ],
               ),
             ),
@@ -2356,12 +2489,18 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
               itemCount: _filteredBP.length,
               itemBuilder: (context, index) {
                 final reading = _filteredBP[index];
-                String status = reading.systolic < 120 && reading.diastolic < 80
+                String status =
+                reading.systolic < 120 && reading.diastolic < 80
                     ? 'Normal'
-                    : (reading.systolic < 130 && reading.diastolic < 80 ? 'Elevated' : 'High');
-                Color color = reading.systolic < 120 && reading.diastolic < 80
+                    : (reading.systolic < 130 && reading.diastolic < 80
+                    ? 'Elevated'
+                    : 'High');
+                Color color =
+                reading.systolic < 120 && reading.diastolic < 80
                     ? Colors.green
-                    : (reading.systolic < 130 && reading.diastolic < 80 ? Colors.orange : Colors.red);
+                    : (reading.systolic < 130 && reading.diastolic < 80
+                    ? Colors.orange
+                    : Colors.red);
                 return Card(
                   margin: EdgeInsets.only(bottom: 8),
                   child: ListTile(
@@ -2369,11 +2508,17 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                       backgroundColor: color.withOpacity(0.2),
                       child: Text(
                         '${reading.systolic}',
-                        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: TextStyle(
+                            color: color,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12),
                       ),
                     ),
-                    title: Text('${reading.systolic}/${reading.diastolic} mmHg', style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(DateFormat('dd/MM/yyyy').format(reading.readingTime)),
+                    title: Text(
+                        '${reading.systolic}/${reading.diastolic} mmHg',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(DateFormat('dd/MM/yyyy')
+                        .format(reading.readingTime)),
                     trailing: PopupMenuButton<String>(
                       icon: Icon(Icons.more_vert),
                       itemBuilder: (context) => [
@@ -2393,7 +2538,8 @@ class _UserDashboardPageState extends State<UserDashboardPage> {
                             children: [
                               Icon(Icons.delete, size: 18, color: Colors.red),
                               SizedBox(width: 8),
-                              Text('Delete', style: TextStyle(color: Colors.red)),
+                              Text('Delete',
+                                  style: TextStyle(color: Colors.red)),
                             ],
                           ),
                         ),
